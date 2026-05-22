@@ -208,62 +208,48 @@
   }
 
     function _processDirectives(el, data) {
-    // data-if / data-else
-    var ifEls = el.querySelectorAll('[data-if]');
-    ifEls.forEach(function(node) {
-        // Limpiar las llaves {{ }} del atributo
-        var rawExpr = node.getAttribute('data-if');
-        var expr = rawExpr.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
-        
-        var show = _evaluate(expr, data);
-        if (!show) {
-        var next = node.nextElementSibling;
-        if (next && next.hasAttribute('data-else')) {
-            next.style.display = '';
-        }
-        node.remove();
-        } else {
-        var next2 = node.nextElementSibling;
-        if (next2 && next2.hasAttribute('data-else')) {
-            next2.remove();
-        }
-        }
-    });
-
-    var expr = rawExpr.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
-
-    // Saltar si la expresión queda vacía
-    if (!expr) {
-    node.removeAttribute('data-if');
-    return;
-    }
-
-    // data-for
-    var forEls = el.querySelectorAll('[data-for]');
-    forEls.forEach(function(node) {
-        var rawList = node.getAttribute('data-for');
-        var listExpr = rawList.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
-        var list = _evaluate(listExpr, data);
-        if (!Array.isArray(list)) return;
-
-        var itemName = node.getAttribute('data-for-item') || 'item';
-        var indexName = node.getAttribute('data-for-index') || 'index';
-        var template = node.outerHTML;
-        var result = '';
-
-        list.forEach(function(item, idx) {
-        var itemData = Object.assign({}, data);
-        itemData[itemName] = item;
-        itemData[indexName] = idx;
-        var itemHtml = template.replace(/\{\{([^}]+)\}\}/g, function(m, expr) {
-            try { return _evaluate(expr.trim(), itemData) || ''; }
-            catch(e) { return ''; }
-        });
-        result += itemHtml;
+        // data-if / data-else
+        var ifEls = Array.from(el.querySelectorAll('[data-if]'));
+        ifEls.forEach(function(node) {
+            if (!node.parentNode) return;
+            var rawExpr = node.getAttribute('data-if') || '';
+            var expr = rawExpr.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
+            if (!expr) { node.removeAttribute('data-if'); return; }
+            var show = _evaluate(expr, data);
+            if (!show) {
+            var next = node.nextElementSibling;
+            if (next && next.hasAttribute('data-else')) next.remove();
+            node.remove();
+            } else {
+            var next2 = node.nextElementSibling;
+            if (next2 && next2.hasAttribute('data-else')) next2.remove();
+            }
         });
 
-        node.outerHTML = result;
-    });
+        // data-for
+        var forEls = Array.from(el.querySelectorAll('[data-for]'));
+        forEls.forEach(function(node) {
+            if (!node.parentNode) return;
+            var rawList = node.getAttribute('data-for') || '';
+            var listExpr = rawList.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
+            var list = _evaluate(listExpr, data);
+            if (!Array.isArray(list)) return;
+            var itemName = node.getAttribute('data-for-item') || 'item';
+            var indexName = node.getAttribute('data-for-index') || 'index';
+            var template = node.outerHTML;
+            var result = '';
+            list.forEach(function(item, idx) {
+            var itemData = Object.assign({}, data);
+            itemData[itemName] = item;
+            itemData[indexName] = idx;
+            var itemHtml = template.replace(/\{\{([^}]+)\}\}/g, function(m, expr) {
+                try { return _evaluate(expr.trim(), itemData) || ''; }
+                catch(e) { return ''; }
+            });
+            result += itemHtml;
+            });
+            if (node.parentNode) node.outerHTML = result;
+        });
     }
 
   global.SuperAppRuntime = Runtime;
