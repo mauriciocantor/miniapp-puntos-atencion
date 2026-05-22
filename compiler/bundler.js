@@ -236,33 +236,31 @@ function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, ru
     ${escapeForTemplate(runtimeSrc)}
 
     /* Polyfill temporal de my para evitar errores antes del SDK */
-    window.my = window.my || {
-      setCanPullDown: function() {},
-      hideBackHome: function() {},
-      exitMiniProgram: function() { history.back(); },
-      openSetting: function() {},
-      getLocation: function(o) { if(o.fail) o.fail({ error: 10001, errorMessage: 'SDK cargando...' }); },
-      getSystemInfo: function() { return Promise.resolve({ platform: /android/i.test(navigator.userAgent) ? 'android' : 'ios', locationEnabled: false, locationAuthorized: false }); },
-      setStorageSync: function() {},
-      getStorageSync: function() { return null; },
-      setStorage: function(o) { if(o.success) o.success(); },
-      getStorageSync: function(o) { return null; },
-      alert: function(o) { alert(o.content || o.title); if(o.success) o.success(); },
-      confirm: function(o) { var r = confirm(o.content); if(o.success) o.success({ confirm: r }); },
-      showToast: function(o) { console.log('[Toast]', o.content); if(o.success) o.success(); },
-      call: function(name, params) { console.warn('[my.call]', name); return Promise.resolve({}); },
-      env: { platform: /android/i.test(navigator.userAgent) ? 'android' : 'ios' },
-      onError: function() {},
-      offError: function() {},
-      getSetting: function(o) { if(o.success) o.success({ authSetting: { "scope.userLocation": false } }); },
-      call: function(name, params) {
-        console.warn("[my.call]", name, params);
-        if (window.my && window.SuperApp) {
-          return window.SuperApp.call(name, params || {});
-        }
-        return Promise.resolve({});
-      },
-    };
+    'window.my = window.my || {',
+    '  setCanPullDown: function() {},',
+    '  hideBackHome: function() {},',
+    '  exitMiniProgram: function() { history.back(); },',
+    '  openSetting: function() {},',
+    '  getSetting: function(o) { if(o.success) o.success({ authSetting: { "scope.userLocation": false } }); },',
+    '  getLocation: function(o) { if(o.fail) o.fail({ error: 10001, errorMessage: "SDK cargando..." }); },',
+    '  getSystemInfo: function() { return Promise.resolve({ platform: /android/i.test(navigator.userAgent) ? "android" : "ios", locationEnabled: false, locationAuthorized: false }); },',
+    '  setStorageSync: function() {},',
+    '  getStorageSync: function() { return null; },',
+    '  setStorage: function(o) { if(o.success) o.success(); },',
+    '  alert: function(o) { alert(o.content || o.title); if(o.success) o.success(); },',
+    '  confirm: function(o) { var r = confirm(o.content); if(o.success) o.success({ confirm: r }); },',
+    '  showToast: function(o) { console.log("[Toast]", o.content); if(o.success) o.success(); },',
+    '  call: function(name, params) {',
+    '    if (name === "MQGetIsUserInGuestMode") return Promise.resolve({ result: { isGuestMode: false } });',
+    '    if (name === "AFLogEvent" || name === "FIRLogEvent") return Promise.resolve({ success: true });',
+    '    console.warn("[my.call]", name, params);',
+    '    if (window.SuperApp && window.SuperApp.call) return window.SuperApp.call(name, params || {});',
+    '    return Promise.resolve({});',
+    '  },',
+    '  env: { platform: /android/i.test(navigator.userAgent) ? "android" : "ios" },',
+    '  onError: function() {},',
+    '  offError: function() {},',
+    '};',
 
     /* App JS — corre inmediatamente con polyfill */
     ${escapeForTemplate(appJs)}
