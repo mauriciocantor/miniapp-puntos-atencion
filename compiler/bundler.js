@@ -167,6 +167,7 @@ async function resolveRequires(src, fileDir, projectRoot) {
       }
 
       if (await fs.pathExists(resolvedPath)) {
+        console.log(`   📎 Resolviendo require: ${resolvedPath}`);
         processed.add(resolvedPath);
         let moduleCode = await fs.readFile(resolvedPath, 'utf8');
         const moduleDir = path.dirname(resolvedPath);
@@ -194,6 +195,13 @@ var ${varName} = (function() {
   }
 
   return await inlineRequire(src, fileDir);
+}
+
+function escapeForTemplate(str) {
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/`/g, '\\`')
+    .replace(/\$\{/g, '\\${');
 }
 
 function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, runtimeSrc, appJs, pagesJs }) {
@@ -225,7 +233,7 @@ function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, ru
 
   <script>
     /* SuperApp Runtime */
-    ${runtimeSrc}
+    ${escapeForTemplate(runtimeSrc)}
 
     /* Polyfill temporal de my para evitar errores antes del SDK */
     window.my = window.my || {
@@ -249,10 +257,10 @@ function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, ru
     };
 
     /* App JS — corre inmediatamente con polyfill */
-    ${appJs}
+    ${escapeForTemplate(appJs)}
 
     /* Pages JS */
-    ${pagesJs}
+    ${escapeForTemplate(pagesJs)}
 
     /* Cuando el SDK real esté listo, reemplazar el polyfill */
     document.addEventListener('DOMContentLoaded', function() {

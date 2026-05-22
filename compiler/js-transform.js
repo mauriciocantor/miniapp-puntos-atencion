@@ -90,8 +90,10 @@ SuperAppRuntime.registerComponent('${componentName}', ${className});
 function transformApp(js) {
   if (!js.includes('App(')) return js;
 
-  js = js.replace(/App\(\{/, 'SuperAppRuntime.initApp({');
-  js = js.replace(/\}\)(\s*)$/, '});');
+  // Reemplazar solo el App({...}) — asegurarse de cerrar correctamente
+  js = js.replace(/App\s*\(\s*\{/, 'SuperAppRuntime.initApp({');
+  // El último }) del archivo es el cierre del App()
+  js = js.replace(/\}\s*\)\s*;?\s*$/, '});');
 
   return js;
 }

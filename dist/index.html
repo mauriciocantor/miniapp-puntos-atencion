@@ -133,7 +133,7 @@
     // ── Template resolver ───────────────────────────────
     _resolveTemplate: function(html, data) {
       // Resolver {{ variable }}
-      html = html.replace(/\{\{([^}]+)\}\}/g, function(match, expr) {
+      html = html.replace(/\\{\\{([^}]+)\\}\\}/g, function(match, expr) {
         try {
           var val = _evaluate(expr.trim(), data);
           return val !== undefined && val !== null ? val : '';
@@ -167,7 +167,7 @@
       var iframes = rootEl.querySelectorAll('iframe[data-src]');
       iframes.forEach(function(iframe) {
         var src = iframe.getAttribute('data-src');
-        src = src.replace(/\{\{([^}]+)\}\}/g, function(match, expr) {
+        src = src.replace(/\\{\\{([^}]+)\\}\\}/g, function(match, expr) {
           try {
             return _evaluate(expr.trim(), data) || '';
           } catch(e) { return ''; }
@@ -204,7 +204,7 @@
     var ifEls = el.querySelectorAll('[data-if]');
     ifEls.forEach(function(node) {
       var expr = node.getAttribute('data-if');
-      var show = _evaluate(expr.replace(/\{\{|\}\}/g, '').trim(), data);
+      var show = _evaluate(expr.replace(/\\{\\{|\\}\\}/g, '').trim(), data);
       if (!show) {
         var next = node.nextElementSibling;
         if (next && next.hasAttribute('data-else')) {
@@ -235,7 +235,7 @@
         var itemData = Object.assign({}, data);
         itemData[itemName] = item;
         itemData[indexName] = idx;
-        var itemHtml = template.replace(/\{\{([^}]+)\}\}/g, function(m, expr) {
+        var itemHtml = template.replace(/\\{\\{([^}]+)\\}\\}/g, function(m, expr) {
           try { return _evaluate(expr.trim(), itemData) || ''; }
           catch(e) { return ''; }
         });
@@ -287,14 +287,9 @@ if (typeof my !== 'undefined') {
     return Promise.resolve({});
   };
 }
-let appJs = '';
-const appJsPath = path.join(projectRoot, 'app.js');
-if (await fs.pathExists(appJsPath)) {
-  let src = await fs.readFile(appJsPath, 'utf8');
-  src = await resolveRequires(src, path.dirname(appJsPath), projectRoot);
-  appJs = transformJs(src, 'app');
-  console.log('✅ app.js compilado');
-}
+SuperAppRuntime.initApp({
+  onLaunch () { my.setCanPullDown({ canPullDown: false }) }
+});
 
     /* Pages JS */
     
@@ -807,7 +802,7 @@ class LoadingPagePage extends SuperAppRuntime.Page {
 				show: true,
 				icon: "info",
 				title: "",
-				text: "Queremos conocer tu ubicación\n para mejorar tu experiencia",
+				text: "Queremos conocer tu ubicación\\n para mejorar tu experiencia",
 				textButton: "Sí, permitir"
 			},
 			onCloseModal: platform === "android" ? "androidGetLocation" : "iosGetLocation"
