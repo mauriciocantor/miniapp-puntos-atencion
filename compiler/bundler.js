@@ -254,6 +254,14 @@ function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, ru
       env: { platform: /android/i.test(navigator.userAgent) ? 'android' : 'ios' },
       onError: function() {},
       offError: function() {},
+      getSetting: function(o) { if(o.success) o.success({ authSetting: { "scope.userLocation": false } }); },
+      call: function(name, params) {
+        console.warn("[my.call]", name, params);
+        if (window.my && window.SuperApp) {
+          return window.SuperApp.call(name, params || {});
+        }
+        return Promise.resolve({});
+      },
     };
 
     /* App JS — corre inmediatamente con polyfill */
