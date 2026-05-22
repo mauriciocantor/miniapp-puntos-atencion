@@ -75,15 +75,18 @@
     },
 
     _renderPage: function(page, rootEl) {
-      var template = document.getElementById('__page_template__');
-      if (!template) return;
-
-      var html = template.innerHTML;
-      html = this._resolveTemplate(html, page.data);
-      rootEl.innerHTML = html;
-
-      this._bindEvents(rootEl, page);
-      this._resolveWebViews(rootEl, page.data);
+      console.log('[Runtime] _renderPage - data:', JSON.stringify(page.data));
+        var template = document.getElementById('__page_template__');
+        if (!template) {
+            console.error('[Runtime] No se encontró __page_template__');
+            return;
+        }
+        console.log('[Runtime] template found, length:', template.innerHTML.length);
+        var html = this._resolveTemplate(template.innerHTML, page.data);
+        console.log('[Runtime] html resuelto, length:', html.length);
+        rootEl.innerHTML = html;
+        this._bindEvents(rootEl, page);
+        this._resolveWebViews(rootEl, page.data);
     },
 
     // ── Template resolver ───────────────────────────────
