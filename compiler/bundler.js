@@ -233,7 +233,7 @@ function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, ru
 
   <script>
     /* SuperApp Runtime */
-    ${escapeForTemplate(runtimeSrc)}
+    ${runtimeSrc}
 
     /* Polyfill temporal de my para evitar errores antes del SDK */
     window.my = window.my || {

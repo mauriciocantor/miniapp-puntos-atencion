@@ -139,7 +139,7 @@
     // ── Template resolver ───────────────────────────────
     _resolveTemplate: function(html, data) {
       // Resolver {{ variable }}
-      html = html.replace(/\\{\\{([^}]+)\\}\\}/g, function(match, expr) {
+      html = html.replace(/\{\{([^}]+)\}\}/g, function(match, expr) {
         try {
           var val = _evaluate(expr.trim(), data);
           return val !== undefined && val !== null ? val : '';
@@ -173,7 +173,7 @@
       var iframes = rootEl.querySelectorAll('iframe[data-src]');
       iframes.forEach(function(iframe) {
         var src = iframe.getAttribute('data-src');
-        src = src.replace(/\\{\\{([^}]+)\\}\\}/g, function(match, expr) {
+        src = src.replace(/\{\{([^}]+)\}\}/g, function(match, expr) {
           try {
             return _evaluate(expr.trim(), data) || '';
           } catch(e) { return ''; }
@@ -212,7 +212,7 @@
     ifEls.forEach(function(node) {
         // Limpiar las llaves {{ }} del atributo
         var rawExpr = node.getAttribute('data-if');
-        var expr = rawExpr.replace(/^\\s*\\{\\{\\s*/, '').replace(/\\s*\\}\\}\\s*$/, '').trim();
+        var expr = rawExpr.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
         
         var show = _evaluate(expr, data);
         if (!show) {
@@ -233,7 +233,7 @@
     var forEls = el.querySelectorAll('[data-for]');
     forEls.forEach(function(node) {
         var rawList = node.getAttribute('data-for');
-        var listExpr = rawList.replace(/^\\s*\\{\\{\\s*/, '').replace(/\\s*\\}\\}\\s*$/, '').trim();
+        var listExpr = rawList.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
         var list = _evaluate(listExpr, data);
         if (!Array.isArray(list)) return;
 
@@ -246,7 +246,7 @@
         var itemData = Object.assign({}, data);
         itemData[itemName] = item;
         itemData[indexName] = idx;
-        var itemHtml = template.replace(/\\{\\{([^}]+)\\}\\}/g, function(m, expr) {
+        var itemHtml = template.replace(/\{\{([^}]+)\}\}/g, function(m, expr) {
             try { return _evaluate(expr.trim(), itemData) || ''; }
             catch(e) { return ''; }
         });
