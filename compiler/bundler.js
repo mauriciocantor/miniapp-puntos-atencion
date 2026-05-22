@@ -172,6 +172,44 @@ function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, ru
   </script>
 
   <script>
+    /* Esperar a que el SDK esté disponible antes de ejecutar */
+    function waitForSDK(callback) {
+      if (window.my && window.SuperApp) {
+        callback();
+        return;
+      }
+      var attempts = 0;
+      var interval = setInterval(function() {
+        attempts++;
+        if (window.my && window.SuperApp) {
+          clearInterval(interval);
+          callback();
+        } else if (attempts > 50) {
+          clearInterval(interval);
+          // Fallback: crear mock de my para desarrollo
+          if (!window.my) {
+            window.my = {
+              getLocation: function(o) { o.fail && o.fail({ error: 10001, errorMessage: 'SDK no disponible' }); },
+              getSystemInfo: function() { return Promise.resolve({ platform: 'Android', locationEnabled: false }); },
+              setStorageSync: function() {},
+              getStorageSync: function() { return null; },
+              setStorage: function(o) { o.success && o.success(); },
+              alert: function(o) { alert(o.content); o.success && o.success(); },
+              hideBackHome: function() {},
+              setCanPullDown: function() {},
+              exitMiniProgram: function() { history.back(); },
+              openSetting: function() {},
+              call: function(name, params) { return Promise.resolve({}); },
+              env: { platform: /android/i.test(navigator.userAgent) ? 'android' : 'ios' },
+              onError: function() {},
+              offError: function() {},
+            };
+          }
+          callback();
+        }
+      }, 100);
+    }
+
     /* SuperApp Runtime */
     ${runtimeSrc}
 
@@ -181,9 +219,11 @@ function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, ru
     /* Pages JS */
     ${pagesJs}
 
-    /* Iniciar */
+    /* Iniciar cuando SDK esté listo */
     document.addEventListener('DOMContentLoaded', function() {
-      SuperAppRuntime.render(document.getElementById('app'));
+      waitForSDK(function() {
+        SuperAppRuntime.render(document.getElementById('app'));
+      });
     });
   </script>
 </body>
