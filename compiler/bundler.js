@@ -25,12 +25,14 @@ async function build(projectRoot, outputDir) {
 
   // 2. Compilar app.acss → app.css
   let globalCss = '';
-  const appAcssPath = path.join(projectRoot, 'app.acss');
-  if (await fs.pathExists(appAcssPath)) {
-    const acss = await fs.readFile(appAcssPath, 'utf8');
-    globalCss = acssToCSs(acss);
-    console.log('✅ app.acss compilado');
-  }
+  const jsPath = `${pageDir}.js`;
+    if (await fs.pathExists(jsPath)) {
+    let src = await fs.readFile(jsPath, 'utf8');
+    // Resolver requires inline
+    src = await resolveRequires(src, path.dirname(jsPath), projectRoot);
+    pagesJs += `\n// === Página: ${pagePath} ===\n${transformJs(src, pageName)}`;
+    console.log(`   ✅ ${pageName}.js compilado`);
+    }
 
   // 3. Compilar app.js
   let appJs = '';
@@ -128,20 +130,70 @@ async function build(projectRoot, outputDir) {
 }
 
 function resolveRequires(src, fileDir, projectRoot) {
-  return src.replace(
-    /require\(['"]([^'"]+)['"]\)/g,
-    function(match, requirePath) {
-      if (requirePath.startsWith('/')) {
-        // Ruta absoluta del mini-program → relativa al proyecto
-        return `require('${requirePath}')`;
+  // Resolver requires de forma recursiva
+  const requireRegex = /(?:const|let|var)\s+(?:\{[^}]+\}|\w+)\s*=\s*require\(['"]([^'"]+)['"]\)/g;
+  const simpleRequireRegex = /require\(['"]([^'"]+)['"]\)/g;
+
+  let result = src;
+  const processed = new Set();
+
+  async function inlineRequire(code, currentDir) {
+    let output = code;
+    const matches = [...code.matchAll(/require\(['"]([^'"]+)['"]\)/g)];
+
+    for (const match of matches) {
+      const requirePath = match[1];
+
+      // Ignorar paquetes externos
+      if (requirePath.startsWith('@') || !requirePath.startsWith('.') && !requirePath.startsWith('/')) {
+        output = output.replace(
+          match[0],
+          `/* external:${requirePath} */ ({})`
+        );
+        continue;
       }
-      if (requirePath.startsWith('@')) {
-        // Paquete externo → mock
-        return `/* external: ${requirePath} */ {}`;
+
+      // Resolver ruta
+      let resolvedPath = requirePath.startsWith('/')
+        ? path.join(projectRoot, requirePath)
+        : path.resolve(currentDir, requirePath);
+
+      // Agregar .js si no tiene extensión
+      if (!resolvedPath.endsWith('.js')) resolvedPath += '.js';
+
+      if (processed.has(resolvedPath)) {
+        output = output.replace(match[0], `__module_${Buffer.from(resolvedPath).toString('base64').substring(0, 8)}`);
+        continue;
       }
-      return match;
+
+      if (await fs.pathExists(resolvedPath)) {
+        processed.add(resolvedPath);
+        let moduleCode = await fs.readFile(resolvedPath, 'utf8');
+        const moduleDir = path.dirname(resolvedPath);
+
+        // Resolver requires anidados
+        moduleCode = await inlineRequire(moduleCode, moduleDir);
+
+        // Convertir module.exports a variable
+        const varName = `__module_${Buffer.from(resolvedPath).toString('base64').substring(0, 8)}`;
+        const wrapped = `
+var ${varName} = (function() {
+  var module = { exports: {} };
+  var exports = module.exports;
+  ${moduleCode}
+  return module.exports;
+})();
+`;
+        output = wrapped + output.replace(match[0], varName);
+      } else {
+        output = output.replace(match[0], `/* not found:${requirePath} */ ({})`);
+      }
     }
-  );
+
+    return output;
+  }
+
+  return await inlineRequire(src, fileDir);
 }
 
 function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, runtimeSrc, appJs, pagesJs }) {
