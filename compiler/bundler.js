@@ -25,16 +25,7 @@ async function build(projectRoot, outputDir) {
 
   // 2. Compilar app.acss → app.css
   let globalCss = '';
-  const jsPath = `${pageDir}.js`;
-    if (await fs.pathExists(jsPath)) {
-    let src = await fs.readFile(jsPath, 'utf8');
-    // Resolver requires inline
-    src = await resolveRequires(src, path.dirname(jsPath), projectRoot);
-    pagesJs += `\n// === Página: ${pagePath} ===\n${transformJs(src, pageName)}`;
-    console.log(`   ✅ ${pageName}.js compilado`);
-    }
-
-  // 3. Compilar app.js
+   // 3. Compilar app.js
   let appJs = '';
   const appJsPath = path.join(projectRoot, 'app.js');
   if (await fs.pathExists(appJsPath)) {
@@ -74,11 +65,10 @@ async function build(projectRoot, outputDir) {
     // JS → JS transpilado
     const jsPath = `${pageDir}.js`;
     if (await fs.pathExists(jsPath)) {
-      let src = await fs.readFile(jsPath, 'utf8');
-      // Resolver requires relativos
-      src = resolveRequires(src, pageDir, projectRoot);
-      pagesJs += `\n// === Página: ${pagePath} ===\n${transformJs(src, pageName)}`;
-      console.log(`   ✅ ${pageName}.js compilado`);
+        let src = await fs.readFile(jsPath, 'utf8');
+        src = await resolveRequires(src, path.dirname(jsPath), projectRoot);
+        pagesJs += `\n// === Página: ${pagePath} ===\n${transformJs(src, pageName)}`;
+        console.log(`   ✅ ${pageName}.js compilado`);
     }
   }
 
@@ -129,7 +119,7 @@ async function build(projectRoot, outputDir) {
   console.log(`   Output: ${outputDir}/index.html`);
 }
 
-function resolveRequires(src, fileDir, projectRoot) {
+async function resolveRequires(src, fileDir, projectRoot) {
   // Resolver requires de forma recursiva
   const requireRegex = /(?:const|let|var)\s+(?:\{[^}]+\}|\w+)\s*=\s*require\(['"]([^'"]+)['"]\)/g;
   const simpleRequireRegex = /require\(['"]([^'"]+)['"]\)/g;

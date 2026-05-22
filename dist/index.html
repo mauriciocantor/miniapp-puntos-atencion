@@ -10,90 +10,7 @@
     #app { min-height: 100vh; }
 
     /* Global CSS compilado desde app.acss */
-    @font-face {
-  font-family: Roboto-Regular;
-  src: url("/main/ui/assets/fonts/Roboto-Regular.ttf")
-}
-
-@font-face {
-  font-family: Roboto-Medium;
-  src: url("/main/ui/assets/fonts/Roboto-Medium.ttf")
-}
-
-@font-face {
-  font-family: Roboto-Bold;
-  src: url("/main/ui/assets/fonts/Roboto-Bold.ttf")
-}
-
-:root {
-  --background-page: #FDFDFF;
-  --color-red-main: #DA291C;
-  --color-blue-secondary: #187385;
-  --color-white: #fff;
-  --color-gray-80: #404040;
-  --color-gray-70: #5E5E5E;
-  --color-gray-60: #808080;
-  --color-gray-separator: #B3B3B3;
-  --color-gray-dark: #2D2D2D;
-  --color-yellow-base: #FFAD0D;
-  --border-radius-card: 20px;
-  --border-radius-sheet: 20px 20px 0 0;
-  --box-shadow-header: 0px 0px 6px #00000029;
-  --box-shadow-card: 3px 3px 20px #2F2F6033;
-  --text-size-normal: 16px;
-  --text-size-small: 12px;
-  --text-size-big: 24px;
-}
-
-body {
-  font-family:Roboto-Regular, sans-serif;
-  background: var(--background-page);
-}
-
-.custom-error-title-modal {
-  width: 100%;
-  font-size: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--color-gray-dark);
-  font-weight: 700;
-  margin-bottom: 16px;
-  text-align: center;
-  letter-spacing: -0.5px;
-}
-
-.custom-error-text-modal {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: var(--color-gray-dark);
-  text-align: center;
-}
-
-.font-size-14 {
-  font-size: 0.28rem;
-}
-
-.font-size-16 {
-  font-size: 0.30rem;
-}
-
-.modal-button-slot {
-  margin-top: 32px;
-  display: flex;
-  flex-direction: column;
-  row-gap: 8px;
-}
-
-.modal-button-roboto-medium {
-  /* stylelint-disable-next-line declaration-no-important */
-  font-size: 14.5px !important;
-  /* stylelint-disable-next-line declaration-no-important */
-  font-family: Roboto-Medium, sans-serif !important;
-}
-
+    
 
     /* CSS de páginas compilado desde .acss */
     
@@ -370,9 +287,14 @@ if (typeof my !== 'undefined') {
     return Promise.resolve({});
   };
 }
-SuperAppRuntime.initApp({
-  onLaunch () { my.setCanPullDown({ canPullDown: false }) }
-});
+let appJs = '';
+const appJsPath = path.join(projectRoot, 'app.js');
+if (await fs.pathExists(appJsPath)) {
+  let src = await fs.readFile(appJsPath, 'utf8');
+  src = await resolveRequires(src, path.dirname(appJsPath), projectRoot);
+  appJs = transformJs(src, 'app');
+  console.log('✅ app.js compilado');
+}
 
     /* Pages JS */
     
@@ -392,11 +314,70 @@ if (typeof my !== 'undefined') {
     return Promise.resolve({});
   };
 }
+
+var __module_bWFpbi91 = (function() {
+  var module = { exports: {} };
+  var exports = module.exports;
+  /* eslint-env node */
+/* global my */
+
+function callAppsFlyer(name) {
+	/* eslint-disable no-undef */
+	const flujo_puntosatencion_sa = {
+		AccountId: "",
+		Email: ""
+	}
+
+	/* istanbul ignore next */
+	my.call("AFLogEvent", {
+		name,
+		parameters: flujo_puntosatencion_sa
+	})
+	/* eslint-enable no-undef */
+}
+
+function callFirebase(flow, name) {
+	/* eslint-disable no-undef */
+	const flujo_puntosatencion_sa = {
+		Event: name,
+		AccountId: "",
+		LineOfBusiness: "",
+		Email: ""
+	}
+
+	/* istanbul ignore next */
+	my.call("FIRLogEvent", {
+		name: flow || "flujo_puntosatencion_sa",
+		parameters: flujo_puntosatencion_sa
+	})
+	/* eslint-enable no-undef */
+}
+
+function getIsUserInGuestMode() {
+	return new Promise((resolve, reject) => {
+		my.call("MQGetIsUserInGuestMode")
+			.then((values) => {
+				resolve(values.result)
+			})
+			.catch((error) => {
+				reject(error)
+			})
+	})
+}
+
+module.exports = {
+	callAppsFlyer,
+	callFirebase,
+	getIsUserInGuestMode
+}
+
+  return module.exports;
+})();
 const {
   callFirebase,
   callAppsFlyer,
   getIsUserInGuestMode
-} = require('./main/utils/tags')
+} = __module_bWFpbi91
 
 
 

@@ -222,9 +222,14 @@ if (typeof my !== 'undefined') {
     return Promise.resolve({});
   };
 }
-SuperAppRuntime.initApp({
-  onLaunch () { my.setCanPullDown({ canPullDown: false }) }
-});
+let appJs = '';
+const appJsPath = path.join(projectRoot, 'app.js');
+if (await fs.pathExists(appJsPath)) {
+  let src = await fs.readFile(appJsPath, 'utf8');
+  src = await resolveRequires(src, path.dirname(appJsPath), projectRoot);
+  appJs = transformJs(src, 'app');
+  console.log('✅ app.js compilado');
+}
 
 
 // === Página: main/ui/pages/loading-page/loading-page ===
@@ -243,11 +248,70 @@ if (typeof my !== 'undefined') {
     return Promise.resolve({});
   };
 }
+
+var __module_bWFpbi91 = (function() {
+  var module = { exports: {} };
+  var exports = module.exports;
+  /* eslint-env node */
+/* global my */
+
+function callAppsFlyer(name) {
+	/* eslint-disable no-undef */
+	const flujo_puntosatencion_sa = {
+		AccountId: "",
+		Email: ""
+	}
+
+	/* istanbul ignore next */
+	my.call("AFLogEvent", {
+		name,
+		parameters: flujo_puntosatencion_sa
+	})
+	/* eslint-enable no-undef */
+}
+
+function callFirebase(flow, name) {
+	/* eslint-disable no-undef */
+	const flujo_puntosatencion_sa = {
+		Event: name,
+		AccountId: "",
+		LineOfBusiness: "",
+		Email: ""
+	}
+
+	/* istanbul ignore next */
+	my.call("FIRLogEvent", {
+		name: flow || "flujo_puntosatencion_sa",
+		parameters: flujo_puntosatencion_sa
+	})
+	/* eslint-enable no-undef */
+}
+
+function getIsUserInGuestMode() {
+	return new Promise((resolve, reject) => {
+		my.call("MQGetIsUserInGuestMode")
+			.then((values) => {
+				resolve(values.result)
+			})
+			.catch((error) => {
+				reject(error)
+			})
+	})
+}
+
+module.exports = {
+	callAppsFlyer,
+	callFirebase,
+	getIsUserInGuestMode
+}
+
+  return module.exports;
+})();
 const {
   callFirebase,
   callAppsFlyer,
   getIsUserInGuestMode
-} = require('./main/utils/tags')
+} = __module_bWFpbi91
 
 
 
