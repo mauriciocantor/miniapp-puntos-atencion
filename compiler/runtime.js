@@ -154,6 +154,7 @@
     try {
       return new Function(keys, 'return (' + expr + ')').apply(null, vals);
     } catch(e) {
+        console.error('[Runtime] _evaluate error:', expr, e.message);
       return undefined;
     }
   }
