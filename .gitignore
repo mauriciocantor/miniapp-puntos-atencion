@@ -1,0 +1,12 @@
+# dependencies
+node_modules/
+documentation/
+coverage/
+# config mini
+.mini-ide-tiny_app_ide_intl_poc_windows/
+# Ide
+.vscode/
+.idea/
+.tea/
+package-lock.jsondist/
+node_modules/

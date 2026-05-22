@@ -1,0 +1,14 @@
+{
+  "subPackageBuildType": "shared",
+  "pages": [
+    "main/ui/pages/loading-page/loading-page"
+  ],
+  "window": {
+    "defaultTitle": "MiClaro Maps",
+    "titleBarColor": "#121D24",
+    "gestureBack": "YES",
+    "transparentTitle": "always",
+    "responsive": true,
+    "showTitleLoading": "YES"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "env": {
+    "browser": false,
+    "commonjs": true,
+    "es6": true,
+    "node": true
+  },
+  "extends": "eslint:recommended",
+  "overrides": [
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest"
+  },
+  "rules": {
+    "no-console": ["error", { "allow": ["warn"] }]
+  },
+  "ignorePatterns": ["documentation/**", "coverage/**"],
+  "globals": {
+    "my": true,
+    "App": true,
+    "Page": true,
+    "Component": true,
+    "getApp": true,
+    "getCurrentPages": true,
+    "getRegExp": true,
+    "getDate": true,
+    "Behavior": true,
+    "document":true,
+    "jest":true,
+    "test":true,
+    "expect":true,
+    "fail":true,
+    "describe": true,
+    "beforeEach": true
+  }
+}

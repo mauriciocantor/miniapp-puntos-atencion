@@ -1,0 +1,17 @@
+<modal a:if="{{ !loader }}" atts={{ modal }} onCloseModal={{ onCloseModal }}>
+  <view a:if={{ modalTextSlot }} slot="modal-content-text">
+    <text a:if={{ modal.title }} class="custom-error-title-modal">
+      {{ modal.title }}
+    </text>
+    <text class="custom-error-text-modal {{httpError ? 'font-size-14' : 'font-size-16'}}">
+      {{ modal.text }}
+    </text>
+  </view>
+  <view a:if={{ modalButtonSlot }} slot="modal-actions" class="modal-button-slot">
+    <claro-button size="sm" type="primary" onTap={{ onCloseModal }} text={{ modal.textButton }} className="modal-button-roboto-medium" />
+    <claro-button size="sm" type="secondary" onTap="exitMiniprogram" text="En otro momento" className="modal-button-roboto-medium" />
+  </view>
+</modal>
+
+<web-view a:if="{{ render }}" src="https://apiselfservice.co/archivos/maps/index.html?lat={{latitude}}&lng={{longitude}}" />
+<loader show={{ loader }} />

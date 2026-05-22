@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "loader": "@claro/components-superapp/dist/components/loaderGif/loaderGif",
+    "claro-button": "@claro/components-superapp/dist/components/claro-button/claro-button",
+    "modal": "@claro/components-superapp/dist/components/modal-base/modal-base"
+  },
+  "styleIsolation": "apply-shared",
+  "transparentTitle": "none",
+  "titleBarColor": "#DA291C"
+}

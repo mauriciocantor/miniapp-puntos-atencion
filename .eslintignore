@@ -1,0 +1,11 @@
+.tea
+.mini-ide*
+ 
+node_modules
+package-lock.json
+ 
+coverage
+results
+documentation
+
+/main/utils
