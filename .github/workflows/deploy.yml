@@ -1,0 +1,130 @@
+name: Build y Deploy Mini-App
+
+on:
+  push:
+    branches: [main, develop, sandbox]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente destino'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - sandbox
+          - production
+      app_id:
+        description: 'ID de la mini-app'
+        required: false
+        default: 'com.claro.puntos-atencion'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Determinar ambiente
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+            APP_ID="${{ github.event.inputs.app_id }}"
+          elif [ "${{ github.ref_name }}" == "main" ]; then
+            ENV="development"
+            APP_ID="com.claro.puntos-atencion"
+          elif [ "${{ github.ref_name }}" == "sandbox" ]; then
+            ENV="sandbox"
+            APP_ID="com.claro.puntos-atencion"
+          else
+            ENV="development"
+            APP_ID="com.claro.puntos-atencion"
+          fi
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+          echo "🌍 Desplegando a: $ENV"
+
+      - name: Compilar AXML → HTML
+        run: |
+          mkdir -p dist
+          node compiler/index.js . dist
+          echo "✅ Compilación completada"
+
+      - name: Verificar output
+        run: |
+          ls -la dist/
+          echo "index.html size: $(wc -c < dist/index.html) bytes"
+
+      - name: Instalar Wrangler
+        run: npm install -g wrangler
+
+      - name: Subir a Cloudflare R2
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          ENV="${{ steps.env.outputs.environment }}"
+          APP_ID="${{ steps.env.outputs.app_id }}"
+          CDN_PATH="${ENV}/${APP_ID}"
+
+          echo "📦 Subiendo a R2: superapp-bundles/$CDN_PATH"
+
+          wrangler r2 object put "superapp-bundles/$CDN_PATH/index.html" \
+            --file dist/index.html \
+            --content-type "text/html" \
+            --remote
+
+          if [ -f dist/bundle.js ]; then
+            wrangler r2 object put "superapp-bundles/$CDN_PATH/bundle.js" \
+              --file dist/bundle.js \
+              --content-type "application/javascript" \
+              --remote
+          fi
+
+          echo "✅ Bundle subido a CDN"
+
+      - name: Notificar al registry
+        run: |
+          ENV="${{ steps.env.outputs.environment }}"
+          APP_ID="${{ steps.env.outputs.app_id }}"
+          VERSION=$(echo "${{ github.sha }}" | cut -c1-7)
+          CDN_URL="https://pub-c13c03b06eb04ba584a460bb1e118eb5.r2.dev"
+          BUNDLE_URL="$CDN_URL/$ENV/$APP_ID/index.html"
+
+          echo "📡 Notificando registry: $APP_ID → $ENV"
+
+          curl -X PUT "${{ secrets.API_URL }}/environments/$APP_ID/$ENV" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.ADMIN_TOKEN }}" \
+            -d "{
+              \"bundle_url\": \"$BUNDLE_URL\",
+              \"version\": \"$VERSION\",
+              \"commit_sha\": \"${{ github.sha }}\",
+              \"status\": \"ready\"
+            }"
+
+          echo "✅ Registry actualizado"
+
+      - name: Resumen del deploy
+        run: |
+          ENV="${{ steps.env.outputs.environment }}"
+          APP_ID="${{ steps.env.outputs.app_id }}"
+          VERSION=$(echo "${{ github.sha }}" | cut -c1-7)
+          CDN_URL="https://pub-c13c03b06eb04ba584a460bb1e118eb5.r2.dev"
+          echo "🎉 Deploy exitoso!"
+          echo "   App: $APP_ID"
+          echo "   Ambiente: $ENV"
+          echo "   Versión: $VERSION"
+          echo "   URL: $CDN_URL/$ENV/$APP_ID/index.html"
