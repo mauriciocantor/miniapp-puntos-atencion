@@ -172,58 +172,50 @@ function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, ru
   </script>
 
   <script>
-    /* Esperar a que el SDK esté disponible antes de ejecutar */
-    function waitForSDK(callback) {
-      if (window.my && window.SuperApp) {
-        callback();
-        return;
-      }
-      var attempts = 0;
-      var interval = setInterval(function() {
-        attempts++;
-        if (window.my && window.SuperApp) {
-          clearInterval(interval);
-          callback();
-        } else if (attempts > 50) {
-          clearInterval(interval);
-          // Fallback: crear mock de my para desarrollo
-          if (!window.my) {
-            window.my = {
-              getLocation: function(o) { o.fail && o.fail({ error: 10001, errorMessage: 'SDK no disponible' }); },
-              getSystemInfo: function() { return Promise.resolve({ platform: 'Android', locationEnabled: false }); },
-              setStorageSync: function() {},
-              getStorageSync: function() { return null; },
-              setStorage: function(o) { o.success && o.success(); },
-              alert: function(o) { alert(o.content); o.success && o.success(); },
-              hideBackHome: function() {},
-              setCanPullDown: function() {},
-              exitMiniProgram: function() { history.back(); },
-              openSetting: function() {},
-              call: function(name, params) { return Promise.resolve({}); },
-              env: { platform: /android/i.test(navigator.userAgent) ? 'android' : 'ios' },
-              onError: function() {},
-              offError: function() {},
-            };
-          }
-          callback();
-        }
-      }, 100);
-    }
-
     /* SuperApp Runtime */
     ${runtimeSrc}
 
-    /* App JS */
+    /* Polyfill temporal de my para evitar errores antes del SDK */
+    window.my = window.my || {
+      setCanPullDown: function() {},
+      hideBackHome: function() {},
+      exitMiniProgram: function() { history.back(); },
+      openSetting: function() {},
+      getLocation: function(o) { if(o.fail) o.fail({ error: 10001, errorMessage: 'SDK cargando...' }); },
+      getSystemInfo: function() { return Promise.resolve({ platform: /android/i.test(navigator.userAgent) ? 'android' : 'ios', locationEnabled: false, locationAuthorized: false }); },
+      setStorageSync: function() {},
+      getStorageSync: function() { return null; },
+      setStorage: function(o) { if(o.success) o.success(); },
+      getStorageSync: function(o) { return null; },
+      alert: function(o) { alert(o.content || o.title); if(o.success) o.success(); },
+      confirm: function(o) { var r = confirm(o.content); if(o.success) o.success({ confirm: r }); },
+      showToast: function(o) { console.log('[Toast]', o.content); if(o.success) o.success(); },
+      call: function(name, params) { console.warn('[my.call]', name); return Promise.resolve({}); },
+      env: { platform: /android/i.test(navigator.userAgent) ? 'android' : 'ios' },
+      onError: function() {},
+      offError: function() {},
+    };
+
+    /* App JS — corre inmediatamente con polyfill */
     ${appJs}
 
     /* Pages JS */
     ${pagesJs}
 
-    /* Iniciar cuando SDK esté listo */
+    /* Cuando el SDK real esté listo, reemplazar el polyfill */
     document.addEventListener('DOMContentLoaded', function() {
-      waitForSDK(function() {
-        SuperAppRuntime.render(document.getElementById('app'));
-      });
+      var attempts = 0;
+      var interval = setInterval(function() {
+        attempts++;
+        if (window.SuperApp && window.SuperApp.getOpenUserInfo) {
+          clearInterval(interval);
+          // El window.my ya fue reemplazado por el SDK real
+          SuperAppRuntime.render(document.getElementById('app'));
+        } else if (attempts > 50) {
+          clearInterval(interval);
+          SuperAppRuntime.render(document.getElementById('app'));
+        }
+      }, 100);
     });
   </script>
 </body>
