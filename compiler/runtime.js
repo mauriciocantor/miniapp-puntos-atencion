@@ -159,52 +159,56 @@
     }
   }
 
-  function _processDirectives(el, data) {
+    function _processDirectives(el, data) {
     // data-if / data-else
     var ifEls = el.querySelectorAll('[data-if]');
     ifEls.forEach(function(node) {
-      var expr = node.getAttribute('data-if');
-      var show = _evaluate(expr.replace(/\{\{|\}\}/g, '').trim(), data);
-      if (!show) {
+        // Limpiar las llaves {{ }} del atributo
+        var rawExpr = node.getAttribute('data-if');
+        var expr = rawExpr.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
+        
+        var show = _evaluate(expr, data);
+        if (!show) {
         var next = node.nextElementSibling;
         if (next && next.hasAttribute('data-else')) {
-          next.style.display = '';
+            next.style.display = '';
         }
         node.remove();
-      } else {
+        } else {
         var next2 = node.nextElementSibling;
         if (next2 && next2.hasAttribute('data-else')) {
-          next2.remove();
+            next2.remove();
         }
-      }
+        }
     });
 
     // data-for
     var forEls = el.querySelectorAll('[data-for]');
     forEls.forEach(function(node) {
-      var listExpr = node.getAttribute('data-for');
-      var list = _evaluate(listExpr, data);
-      if (!Array.isArray(list)) return;
+        var rawList = node.getAttribute('data-for');
+        var listExpr = rawList.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
+        var list = _evaluate(listExpr, data);
+        if (!Array.isArray(list)) return;
 
-      var itemName = node.getAttribute('data-for-item') || 'item';
-      var indexName = node.getAttribute('data-for-index') || 'index';
-      var template = node.outerHTML;
-      var result = '';
+        var itemName = node.getAttribute('data-for-item') || 'item';
+        var indexName = node.getAttribute('data-for-index') || 'index';
+        var template = node.outerHTML;
+        var result = '';
 
-      list.forEach(function(item, idx) {
+        list.forEach(function(item, idx) {
         var itemData = Object.assign({}, data);
         itemData[itemName] = item;
         itemData[indexName] = idx;
         var itemHtml = template.replace(/\{\{([^}]+)\}\}/g, function(m, expr) {
-          try { return _evaluate(expr.trim(), itemData) || ''; }
-          catch(e) { return ''; }
+            try { return _evaluate(expr.trim(), itemData) || ''; }
+            catch(e) { return ''; }
         });
         result += itemHtml;
-      });
+        });
 
-      node.outerHTML = result;
+        node.outerHTML = result;
     });
-  }
+    }
 
   global.SuperAppRuntime = Runtime;
 
