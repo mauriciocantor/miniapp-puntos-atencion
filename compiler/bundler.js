@@ -135,13 +135,23 @@ async function resolveRequires(src, fileDir, projectRoot) {
       const requirePath = match[1];
 
       // Ignorar paquetes externos
-      if (requirePath.startsWith('@') || !requirePath.startsWith('.') && !requirePath.startsWith('/')) {
+      const EXTERNAL_MODULES = [
+        'fs', 'fs-extra', 'path', 'os', 'crypto', 'http', 'https',
+        'stream', 'buffer', 'util', 'events', 'child_process',
+        'rxjs', 'jsrsasign',
+        ];
+
+        if (
+        requirePath.startsWith('@') ||
+        EXTERNAL_MODULES.includes(requirePath) ||
+        (!requirePath.startsWith('.') && !requirePath.startsWith('/'))
+        ) {
         output = output.replace(
-          match[0],
-          `/* external:${requirePath} */ ({})`
+            match[0],
+            `/* external:${requirePath} */ ({})`
         );
         continue;
-      }
+        }
 
       // Resolver ruta
       let resolvedPath = requirePath.startsWith('/')
