@@ -153,6 +153,7 @@
 
   // ── Helpers privados ─────────────────────────────────
   function _evaluate(expr, data) {
+    if (!expr || !expr.trim()) return undefined;
     var keys = Object.keys(data);
     var vals = keys.map(function(k) { return data[k]; });
     try {
@@ -185,6 +186,14 @@
         }
         }
     });
+
+    var expr = rawExpr.replace(/^\s*\{\{\s*/, '').replace(/\s*\}\}\s*$/, '').trim();
+
+    // Saltar si la expresión queda vacía
+    if (!expr) {
+    node.removeAttribute('data-if');
+    return;
+    }
 
     // data-for
     var forEls = el.querySelectorAll('[data-for]');
