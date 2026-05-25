@@ -48,10 +48,10 @@
 
     // ── Render engine ───────────────────────────────────
     render: function(rootEl) {
-      // Iniciar la primera página registrada
       console.log('[Runtime] iniciando render');
       var pageNames = Object.keys(_pages);
       console.log('[Runtime] páginas registradas:', pageNames);
+
       if (pageNames.length === 0) {
         console.error('[Runtime] No hay páginas registradas');
         rootEl.innerHTML = '<p style="padding:20px;color:red">Error: No hay páginas registradas</p>';
