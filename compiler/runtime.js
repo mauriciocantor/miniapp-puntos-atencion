@@ -81,7 +81,14 @@
         var mapUrl = 'https://apiselfservice.co/archivos/maps/index.html' +
           '?lat=' + page.data.latitude +
           '&lng=' + page.data.longitude;
-        rootEl.innerHTML = '<iframe src="' + mapUrl + '" style="width:100%;height:100vh;border:none;"></iframe>';
+        
+        // Usar el bridge para decirle al host que navegue a esta URL
+        if (window.SuperApp && window.SuperApp.call) {
+          window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
+        } else {
+          // Fallback: cambiar la URL del WebView directamente
+          window.location.href = mapUrl;
+        }
         return;
       }
 

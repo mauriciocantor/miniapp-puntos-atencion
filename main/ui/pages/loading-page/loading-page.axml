@@ -13,5 +13,5 @@
   </view>
 </modal>
 
-<web-view a:if="{{ render }}" src="https://apiselfservice.co/archivos/maps/index.html?lat={{latitude}}&lng={{longitude}}" />
+<web-view a:if="{{ render }}" src="https://maps.google.com/maps?q={{latitude}},{{longitude}}&z=15&output=embed" />
 <loader show={{ loader }} />
