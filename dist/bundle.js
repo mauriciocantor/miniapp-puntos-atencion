@@ -61,6 +61,7 @@
       var PageClass = _pages[pageNames[0]];
       _currentPage = new PageClass();
       _currentPage.data = _currentPage.data || {};
+      window.__superappPage = _currentPage;
 
       // Ejecutar lifecycle
       if (typeof _currentPage.onLoad === 'function') {
@@ -79,19 +80,48 @@
     },
 
     _renderPage: function(page, rootEl) {
-      console.log('[Runtime] _renderPage - data:', JSON.stringify(page.data));
-      var template = document.getElementById('__page_template__');
-      if (!template) {
-        console.error('[Runtime] No se encontró __page_template__');
+      // Si render=true y hay coordenadas, mostrar el mapa directamente
+      if (page.data.render && page.data.latitude && page.data.longitude) {
+        var mapUrl = 'https://apiselfservice.co/archivos/maps/index.html' +
+          '?lat=' + page.data.latitude +
+          '&lng=' + page.data.longitude;
+        rootEl.innerHTML = '<iframe src="' + mapUrl + '" style="width:100%;height:100vh;border:none;"></iframe>';
         return;
       }
-      console.log('[Runtime] template found, length:', template.innerHTML.length);
-      var html = this._resolveTemplate(template.innerHTML, page.data);
-      console.log('[Runtime] html resuelto, length:', html.length);
-      console.log('[Runtime] html resuelto contenido:', html.substring(0, 200));  // <- agregar
-      rootEl.innerHTML = html;
-      this._bindEvents(rootEl, page);
-      this._resolveWebViews(rootEl, page.data);
+
+      // Si loader=false y hay modal, mostrar pantalla de permisos simplificada
+      if (!page.data.loader && page.data.modal && page.data.modal.show) {
+        rootEl.innerHTML = [
+          '<div style="min-height:100vh;background:#f5f5f5;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;">',
+          '<img src="assets/images/iconos-notificacion.svg" style="width:80px;margin-bottom:24px;" onerror="this.style.display=\'none\'">',
+          '<p style="font-size:16px;color:#2D2D2D;text-align:center;margin-bottom:32px;line-height:1.5;">',
+          (page.data.modal.text || '').replace(/\\n/g, '<br>'),
+          '</p>',
+          page.data.modalButtonSlot ? [
+            '<button onclick="window.__superappPage.androidGetLocation && window.__superappPage.androidGetLocation()" ',
+            'style="width:100%;padding:14px;background:#DA291C;color:white;border:none;border-radius:25px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:12px;">',
+            (page.data.modal.textButton || 'Sí, permitir'),
+            '</button>',
+            '<button onclick="window.__superappPage.exitMiniprogram && window.__superappPage.exitMiniprogram()" ',
+            'style="width:100%;padding:14px;background:transparent;color:#DA291C;border:1.5px solid #DA291C;border-radius:25px;font-size:15px;cursor:pointer;">',
+            'En otro momento',
+            '</button>',
+          ].join('') : '',
+          '</div>',
+        ].join('');
+
+        // Exponer la página para los botones
+        window.__superappPage = page;
+        return;
+      }
+
+      // Loader activo — mostrar spinner
+      rootEl.innerHTML = [
+        '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">',
+        '<img src="assets/images/claro_loading.gif" style="width:80px;" onerror="this.style.display=\'none\'">',
+        '<p style="color:#888;margin-top:16px;font-size:14px;">Cargando...</p>',
+        '</div>',
+      ].join('');
     },
 
     // ── Template resolver ───────────────────────────────
