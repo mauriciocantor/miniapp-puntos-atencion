@@ -221,6 +221,34 @@ function generateHtml({ title, titleBarColor, globalCss, pagesCss, pagesHtml, ru
 
     /* CSS de páginas compilado desde .acss */
     ${pagesCss}
+    /* Estilos base para componentes Claro */
+    [data-component="modal"] {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items: flex-end;
+      justify-content: center; z-index: 100;
+    }
+    [data-component="modal"] > div {
+      background: white; border-radius: 20px 20px 0 0;
+      padding: 24px; width: 100%; max-width: 480px;
+    }
+    [data-component="loader"] {
+      display: flex; align-items: center;
+      justify-content: center; min-height: 200px;
+    }
+    [data-component="claro-button"] {
+      display: block; width: 100%; padding: 14px;
+      border: none; border-radius: 25px;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; margin-bottom: 8px;
+    }
+    [data-component="claro-button"][type="primary"] {
+      background: #DA291C; color: white;
+    }
+    [data-component="claro-button"][type="secondary"] {
+      background: transparent; color: #DA291C;
+      border: 1.5px solid #DA291C;
+    }
   </style>
 </head>
 <body>
