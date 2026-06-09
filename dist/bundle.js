@@ -249,7 +249,8 @@
 
   global.SuperAppRuntime = Runtime;
 
-})(window);
+})(window);// Tue Jun  9 15:35:14 -05 2026
+
 
 
 // Polyfills para APIs de Alipay no disponibles en SuperApp
