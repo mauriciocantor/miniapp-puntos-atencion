@@ -94,55 +94,30 @@ Page({
 			}
 		}
 	},
-	validatePermissionMP() {
+	async validatePermissionMP() {
 		// Verificar si ya aceptó antes usando storage persistente
-		await new Promise((resolve) => {
-			my.getStorage({
+		my.getStorage({
 			key: 'location_accepted',
 			success: (res) => {
-				if (res.data === 'true') {
+			if (res.data === 'true') {
 				this.resetPopup()
 				my.getLocation({
-					timeout: 15,
-					success: (res) => {
+				timeout: 15,
+				success: (res) => {
 					const { latitude, longitude } = res
 					this.setData({ latitude, longitude, render: true })
-					},
-					fail: () => this.errorPopup(),
+				},
+				fail: () => this.errorPopup(),
 				})
-				}
-				resolve()
-			},
-			fail: () => resolve(), // si no existe, continuar normalmente
-			})
-		})
-		// get if miniprogram permission were turned on
-		my.getSetting({
-			success: (res) => {
-				const { platform } = this.data
-				// android validations
-				if (platform === "android") {
-					const auth = res.authSetting["scope.location"]
-					if (auth) {
-						this.androidGetLocation()
-					} else {
-						this.alertPopup()
-					}
-					// ios validations
-				} else {
-					const { location } = res.authSetting
-
-					if (location) {
-						this.iosGetLocation()
-					} else {
-						this.alertPopup()
-					}
-				}
-			},
-			fail: (res) => {
-				this.errorPopup()
-				return res
+				return  // salir sin mostrar el modal
 			}
+			// No ha aceptado antes — continuar con el flujo normal
+			this._showPermissionFlow()
+			},
+			fail: () => {
+			// Key no existe — continuar con el flujo normal
+			this._showPermissionFlow()
+			},
 		})
 	},
 	// validation to get in first instance permissions, we handle here auth and exceptions
