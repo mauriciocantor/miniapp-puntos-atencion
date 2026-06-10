@@ -484,6 +484,7 @@ class LoadingPagePage extends SuperAppRuntime.Page {
 	// validation to get in first instance permissions, we handle here auth and exceptions
 	androidGetLocation() {
 		if (!this.data.isShown) return
+		my.setStorageSync('location_accepted', 'true')
 		this.validateFirebase()
 		this.resetPopup()
 		my.getLocation({
@@ -610,6 +611,7 @@ class LoadingPagePage extends SuperAppRuntime.Page {
 	},
 	iosGetLocation() {
 		if (!this.data.isShown) return
+		my.setStorageSync('location_accepted', 'true')
 		this.validateFirebase()
 		this.resetPopup()
 		my.getLocation({

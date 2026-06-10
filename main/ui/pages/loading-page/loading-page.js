@@ -127,6 +127,7 @@ Page({
 	// validation to get in first instance permissions, we handle here auth and exceptions
 	androidGetLocation() {
 		if (!this.data.isShown) return
+		my.setStorageSync('location_accepted', 'true')
 		this.validateFirebase()
 		this.resetPopup()
 		my.getLocation({
@@ -253,6 +254,7 @@ Page({
 	},
 	iosGetLocation() {
 		if (!this.data.isShown) return
+		my.setStorageSync('location_accepted', 'true')
 		this.validateFirebase()
 		this.resetPopup()
 		my.getLocation({
