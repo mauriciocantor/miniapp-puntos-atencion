@@ -95,6 +95,27 @@ Page({
 		}
 	},
 	validatePermissionMP() {
+		// Verificar si ya aceptó antes usando storage persistente
+		await new Promise((resolve) => {
+			my.getStorage({
+			key: 'location_accepted',
+			success: (res) => {
+				if (res.data === 'true') {
+				this.resetPopup()
+				my.getLocation({
+					timeout: 15,
+					success: (res) => {
+					const { latitude, longitude } = res
+					this.setData({ latitude, longitude, render: true })
+					},
+					fail: () => this.errorPopup(),
+				})
+				}
+				resolve()
+			},
+			fail: () => resolve(), // si no existe, continuar normalmente
+			})
+		})
 		// get if miniprogram permission were turned on
 		my.getSetting({
 			success: (res) => {
@@ -127,7 +148,10 @@ Page({
 	// validation to get in first instance permissions, we handle here auth and exceptions
 	androidGetLocation() {
 		if (!this.data.isShown) return
-		my.setStorageSync('location_accepted', 'true')
+		my.setStorage({
+			key: 'location_accepted',
+			data: 'true',
+		})
 		this.validateFirebase()
 		this.resetPopup()
 		my.getLocation({
@@ -254,7 +278,10 @@ Page({
 	},
 	iosGetLocation() {
 		if (!this.data.isShown) return
-		my.setStorageSync('location_accepted', 'true')
+		my.setStorage({
+			key: 'location_accepted',
+			data: 'true',
+		})
 		this.validateFirebase()
 		this.resetPopup()
 		my.getLocation({
