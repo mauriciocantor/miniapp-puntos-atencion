@@ -72,6 +72,7 @@
           window.my.getStorage({
             key: 'location_accepted',
             success: function(res) {
+              console.log('[Runtime] getStorage success, data:', res.data);
               if (res.data === 'true') {
                 console.log('[Runtime] location ya aceptada, cargando mapa directo');
                 window.my.getLocation({
@@ -90,6 +91,7 @@
               self._startNormalLifecycle(rootEl);
             },
             fail: function() {
+              console.log('[Runtime] getStorage fail:', JSON.stringify(err));
               self._startNormalLifecycle(rootEl);
             },
           });
