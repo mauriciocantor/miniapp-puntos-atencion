@@ -95,29 +95,30 @@ Page({
 		}
 	},
 	async validatePermissionMP() {
-		// Verificar si ya aceptó antes usando storage persistente
+		const self = this
+		let handled = false
 		my.getStorage({
 			key: 'location_accepted',
 			success: (res) => {
-				console.log('[Storage] location_accepted:', res.data)
-			if (res.data === 'true') {
-				this.resetPopup()
-				my.getLocation({
-				timeout: 15,
-				success: (res) => {
-					const { latitude, longitude } = res
-					this.setData({ latitude, longitude, render: true })
-				},
-				fail: () => this.errorPopup(),
-				})
-				return  // salir sin mostrar el modal
-			}
-			// No ha aceptado antes — continuar con el flujo normal
-			this._showPermissionFlow()
+				if (res.data === 'true') {
+					handled = true
+					self.resetPopup()
+					my.getLocation({
+						timeout: 15,
+						success: (res) => {
+							const { latitude, longitude } = res
+							self.setData({ latitude, longitude, render: true })
+						},
+						fail: () => self.errorPopup(),
+					})
+					return
+				}
+				handled = true
+				self._showPermissionFlow()
 			},
 			fail: () => {
-			// Key no existe — continuar con el flujo normal
-			this._showPermissionFlow()
+				handled = true
+				self._showPermissionFlow()
 			},
 		})
 	},
