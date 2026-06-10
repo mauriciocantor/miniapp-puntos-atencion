@@ -63,14 +63,42 @@
       _currentPage.data = _currentPage.data || {};
       window.__superappPage = _currentPage;
 
-      // Ejecutar lifecycle
+      // Verificar storage antes del lifecycle
+      var self = this;
+      if (window.my && window.my.getStorage) {
+        window.my.getStorage({
+          key: 'location_accepted',
+          success: function(res) {
+            if (res.data === 'true') {
+              console.log('[Runtime] location ya aceptada, cargando mapa directo');
+              window.my.getLocation({
+                timeout: 15,
+                success: function(loc) {
+                  var mapUrl = 'https://maps.google.com/maps?q=' + loc.latitude + ',' + loc.longitude + '&z=15&output=embed';
+                  window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
+                },
+                fail: function() {
+                  self._startNormalLifecycle(rootEl);
+                },
+              });
+              return;
+            }
+            self._startNormalLifecycle(rootEl);
+          },
+          fail: function() {
+            self._startNormalLifecycle(rootEl);
+          },
+        });
+      } else {
+        this._startNormalLifecycle(rootEl);
+      }
+    },
+
+    _startNormalLifecycle: function(rootEl) {
       if (typeof _currentPage.onLoad === 'function') {
         _currentPage.onLoad({});
       }
-
-      // Render inicial
       this._renderPage(_currentPage, rootEl);
-
       if (typeof _currentPage.onReady === 'function') {
         _currentPage.onReady();
       }
