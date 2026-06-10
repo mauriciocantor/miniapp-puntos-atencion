@@ -120,6 +120,32 @@ Page({
 			},
 		})
 	},
+	_showPermissionFlow() {
+		my.getSetting({
+			success: (res) => {
+				const { platform } = this.data
+				if (platform === "android") {
+					const auth = res.authSetting["scope.location"]
+					if (auth) {
+						this.androidGetLocation()
+					} else {
+						this.alertPopup()
+					}
+				} else {
+					const { location } = res.authSetting
+					if (location) {
+						this.iosGetLocation()
+					} else {
+						this.alertPopup()
+					}
+				}
+			},
+			fail: (res) => {
+				this.errorPopup()
+				return res
+			}
+		})
+	},
 	// validation to get in first instance permissions, we handle here auth and exceptions
 	androidGetLocation() {
 		if (!this.data.isShown) return
