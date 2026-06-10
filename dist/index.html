@@ -134,35 +134,44 @@
       _currentPage.data = _currentPage.data || {};
       window.__superappPage = _currentPage;
 
-      // Verificar storage antes del lifecycle
       var self = this;
-      if (window.my && window.my.getStorage) {
-        window.my.getStorage({
-          key: 'location_accepted',
-          success: function(res) {
-            if (res.data === 'true') {
-              console.log('[Runtime] location ya aceptada, cargando mapa directo');
-              window.my.getLocation({
-                timeout: 15,
-                success: function(loc) {
-                  var mapUrl = 'https://maps.google.com/maps?q=' + loc.latitude + ',' + loc.longitude + '&z=15&output=embed';
-                  window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
-                },
-                fail: function() {
-                  self._startNormalLifecycle(rootEl);
-                },
-              });
-              return;
-            }
-            self._startNormalLifecycle(rootEl);
-          },
-          fail: function() {
-            self._startNormalLifecycle(rootEl);
-          },
-        });
-      } else {
-        this._startNormalLifecycle(rootEl);
-      }
+
+      // Esperar a que window.my esté disponible
+      var attempts = 0;
+      var interval = setInterval(function() {
+        attempts++;
+        if (window.my && window.my.getStorage) {
+          clearInterval(interval);
+          // Verificar storage
+          window.my.getStorage({
+            key: 'location_accepted',
+            success: function(res) {
+              if (res.data === 'true') {
+                console.log('[Runtime] location ya aceptada, cargando mapa directo');
+                window.my.getLocation({
+                  timeout: 15,
+                  success: function(loc) {
+                    console.log('[Runtime] ubicacion obtenida, cargando mapa');
+                    var mapUrl = 'https://maps.google.com/maps?q=' + loc.latitude + ',' + loc.longitude + '&z=15&output=embed';
+                    window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
+                  },
+                  fail: function() {
+                    self._startNormalLifecycle(rootEl);
+                  },
+                });
+                return;
+              }
+              self._startNormalLifecycle(rootEl);
+            },
+            fail: function() {
+              self._startNormalLifecycle(rootEl);
+            },
+          });
+        } else if (attempts > 50) {
+          clearInterval(interval);
+          self._startNormalLifecycle(rootEl);
+        }
+      }, 100);
     },
 
     _startNormalLifecycle: function(rootEl) {
