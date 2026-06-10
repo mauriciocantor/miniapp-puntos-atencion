@@ -65,6 +65,7 @@
       var attempts = 0;
       var interval = setInterval(function() {
         attempts++;
+        console.log('[Runtime] esperando my, attempt:', attempts, 'my disponible:', !!(window.my && window.my.getStorage));
         if (window.my && window.my.getStorage) {
           clearInterval(interval);
           // Verificar storage
