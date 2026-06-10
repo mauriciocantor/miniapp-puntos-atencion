@@ -101,20 +101,23 @@ Page({
 			key: 'location_accepted',
 			success: (res) => {
 				if (res.data === 'true') {
-					handled = true
+					console.log('[Storage] ya aceptó antes, cargando mapa directo')
 					self.resetPopup()
 					my.getLocation({
 						timeout: 15,
 						success: (res) => {
+							console.log('[Storage] ubicación obtenida:', res.latitude, res.longitude)
 							const { latitude, longitude } = res
 							self.setData({ latitude, longitude, render: true })
+							console.log('[Storage] setData render:true llamado')
 						},
-						fail: () => self.errorPopup(),
+						fail: (err) => {
+							console.log('[Storage] getLocation falló:', JSON.stringify(err))
+							self.errorPopup()
+						},
 					})
 					return
 				}
-				handled = true
-				self._showPermissionFlow()
 			},
 			fail: () => {
 				handled = true
