@@ -457,6 +457,7 @@ class LoadingPagePage extends SuperAppRuntime.Page {
 		my.getStorage({
 			key: 'location_accepted',
 			success: (res) => {
+				console.log('[Storage] location_accepted:', res.data)
 			if (res.data === 'true') {
 				this.resetPopup()
 				my.getLocation({
@@ -510,6 +511,8 @@ class LoadingPagePage extends SuperAppRuntime.Page {
 		my.setStorage({
 			key: 'location_accepted',
 			data: 'true',
+			success: () => console.log('[Storage] location_accepted guardado'),
+			fail: (err) => console.log('[Storage] error guardando:', JSON.stringify(err)),
 		})
 		this.validateFirebase()
 		this.resetPopup()
