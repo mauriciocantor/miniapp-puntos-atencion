@@ -77,7 +77,7 @@
             key: 'location_accepted',
             success: function(res) {
               console.log('[Runtime] getStorage success, data:', res.data);
-              if (res.data === 'true') {
+              if (res.data) {
                 console.log('[Runtime] location ya aceptada, cargando mapa directo');
                 window.my.getLocation({
                   timeout: 15,
@@ -85,11 +85,11 @@
                     console.log('[Runtime] ubicacion obtenida:', JSON.stringify(loc));
                     var lat = loc.latitude || loc.lat;
                     var lng = loc.longitude || loc.lng;
-                    var mapUrl = 'https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=15&output=embed';
-  
+                    var mapUrl = 'https://maps.google.com/?q=' + lat + ',' + lng;
+                    console.log('[Runtime] cargando mapa:', mapUrl);
                     window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
                   },
-                  fail: function() {
+                  fail: function(err) {
                     console.log('[Runtime] getLocation fail:', JSON.stringify(err));
                     self._startNormalLifecycle(rootEl);
                   },
@@ -98,8 +98,8 @@
               }
               self._startNormalLifecycle(rootEl);
             },
-            fail: function() {
-              console.log('[Runtime] getStorage fail:', JSON.stringify(err));
+            fail: function(err) {
+              console.log('[Runtime] getStorage fail — key no existe, iniciando flujo normal');
               self._startNormalLifecycle(rootEl);
             },
           });
@@ -126,15 +126,11 @@
     _renderPage: function(page, rootEl) {
       // Si render=true y hay coordenadas, mostrar el mapa directamente
       if (page.data.render && page.data.latitude && page.data.longitude) {
-        var mapUrl = 'https://apiselfservice.co/archivos/maps/index.html' +
-          '?lat=' + page.data.latitude +
-          '&lng=' + page.data.longitude;
-        
-        // Usar el bridge para decirle al host que navegue a esta URL
+        var mapUrl = 'https://maps.google.com/?q=' + page.data.latitude + ',' + page.data.longitude;
+        console.log('[Runtime] _renderPage → cargando mapa:', mapUrl);
         if (window.SuperApp && window.SuperApp.call) {
           window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
         } else {
-          // Fallback: cambiar la URL del WebView directamente
           window.location.href = mapUrl;
         }
         return;
@@ -498,11 +494,11 @@ class LoadingPagePage extends SuperAppRuntime.Page {
 	},
 	async validatePermissionMP() {
 		const self = this
-		let handled = false
 		my.getStorage({
 			key: 'location_accepted',
 			success: (res) => {
-				if (res.data === 'true') {
+				// my.getStorage hace JSON.parse('true') → boolean true, por eso se usa res.data en lugar de === 'true'
+				if (res.data) {
 					console.log('[Storage] ya aceptó antes, cargando mapa directo')
 					self.resetPopup()
 					my.getLocation({
@@ -520,9 +516,11 @@ class LoadingPagePage extends SuperAppRuntime.Page {
 					})
 					return
 				}
+				// Key existe pero vacía — tratar igual que si no existiera
+				self._showPermissionFlow()
 			},
 			fail: () => {
-				handled = true
+				// Key no existe → primera vez, mostrar flujo de permisos
 				self._showPermissionFlow()
 			},
 		})

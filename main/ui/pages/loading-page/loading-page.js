@@ -96,11 +96,11 @@ Page({
 	},
 	async validatePermissionMP() {
 		const self = this
-		let handled = false
 		my.getStorage({
 			key: 'location_accepted',
 			success: (res) => {
-				if (res.data === 'true') {
+				// my.getStorage hace JSON.parse('true') → boolean true, por eso se usa res.data en lugar de === 'true'
+				if (res.data) {
 					console.log('[Storage] ya aceptó antes, cargando mapa directo')
 					self.resetPopup()
 					my.getLocation({
@@ -118,9 +118,11 @@ Page({
 					})
 					return
 				}
+				// Key existe pero vacía — tratar igual que si no existiera
+				self._showPermissionFlow()
 			},
 			fail: () => {
-				handled = true
+				// Key no existe → primera vez, mostrar flujo de permisos
 				self._showPermissionFlow()
 			},
 		})
