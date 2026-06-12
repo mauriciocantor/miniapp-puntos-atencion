@@ -81,9 +81,12 @@
                     console.log('[Runtime] ubicacion obtenida:', JSON.stringify(loc));
                     var lat = loc.latitude || loc.lat;
                     var lng = loc.longitude || loc.lng;
-                    var mapUrl = 'https://maps.google.com/?q=' + lat + ',' + lng;
-                    console.log('[Runtime] cargando mapa:', mapUrl);
-                    window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
+                    console.log('[Runtime] cargando mapa lat=' + lat + ' lng=' + lng);
+                    var delta = 0.01;
+                    var bbox = (lng - delta) + ',' + (lat - delta) + ',' + (lng + delta) + ',' + (lat + delta);
+                    var osmSrc = 'https://www.openstreetmap.org/export/embed.html?bbox=' + bbox + '&layer=mapnik&marker=' + lat + ',' + lng;
+                    var mapHtml = '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;overflow:hidden}iframe{width:100%;height:100%;border:0;display:block}</style></head><body><iframe src="' + osmSrc + '" allowfullscreen></iframe></body></html>';
+                    window.SuperApp.call('navigation.loadData', { html: mapHtml });
                   },
                   fail: function(err) {
                     console.log('[Runtime] getLocation fail:', JSON.stringify(err));
@@ -122,12 +125,15 @@
     _renderPage: function(page, rootEl) {
       // Si render=true y hay coordenadas, mostrar el mapa directamente
       if (page.data.render && page.data.latitude && page.data.longitude) {
-        var mapUrl = 'https://maps.google.com/?q=' + page.data.latitude + ',' + page.data.longitude;
-        console.log('[Runtime] _renderPage → cargando mapa:', mapUrl);
+        var lat = page.data.latitude;
+        var lng = page.data.longitude;
+        console.log('[Runtime] _renderPage → cargando mapa lat=' + lat + ' lng=' + lng);
+        var delta = 0.01;
+        var bbox = (lng - delta) + ',' + (lat - delta) + ',' + (lng + delta) + ',' + (lat + delta);
+        var osmSrc = 'https://www.openstreetmap.org/export/embed.html?bbox=' + bbox + '&layer=mapnik&marker=' + lat + ',' + lng;
+        var mapHtml = '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;overflow:hidden}iframe{width:100%;height:100%;border:0;display:block}</style></head><body><iframe src="' + osmSrc + '" allowfullscreen></iframe></body></html>';
         if (window.SuperApp && window.SuperApp.call) {
-          window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
-        } else {
-          window.location.href = mapUrl;
+          window.SuperApp.call('navigation.loadData', { html: mapHtml });
         }
         return;
       }
