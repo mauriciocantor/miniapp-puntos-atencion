@@ -78,11 +78,14 @@
                 window.my.getLocation({
                   timeout: 15,
                   success: function(loc) {
-                    console.log('[Runtime] ubicacion obtenida, cargando mapa');
-                    var mapUrl = 'https://maps.google.com/maps?q=' + loc.latitude + ',' + loc.longitude + '&z=15&output=embed';
-                    window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
+                    console.log('[Runtime] ubicacion obtenida:', JSON.stringify(loc));
+                    var lat = loc.latitude || loc.lat;
+                    var lng = loc.longitude || loc.lng;
+                    var mapUrl = 'https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=15&output=embed';
+
                   },
                   fail: function() {
+                    console.log('[Runtime] getLocation fail:', JSON.stringify(err));
                     self._startNormalLifecycle(rootEl);
                   },
                 });
