@@ -157,7 +157,8 @@
                     var lat = loc.latitude || loc.lat;
                     var lng = loc.longitude || loc.lng;
                     var mapUrl = 'https://maps.google.com/maps?q=' + lat + ',' + lng + '&z=15&output=embed';
-
+  
+                    window.SuperApp.call('navigation.loadUrl', { url: mapUrl });
                   },
                   fail: function() {
                     console.log('[Runtime] getLocation fail:', JSON.stringify(err));
